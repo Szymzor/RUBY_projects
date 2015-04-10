@@ -2,8 +2,12 @@ require 'curses'
 Curses.curs_set(0)		#the cursor is invisible.
 Curses.noecho			#does not show input of getch
 
-
 class Game
+$variable = 0
+$score = 0
+$time = 2
+
+
 	#set start position of a square
 	def initialize
 		set_user_interface
@@ -14,11 +18,15 @@ class Game
 		$food_y = Random.rand((27)/3)*2
 		$food_y = $food_y + 6
 		@food_icon = "X"
-		$score = 0
-		$time = 0
+		
+
+		
 	end
 
 	def set_user_interface
+$height = Curses.lines - 1
+$width = Curses.cols - 1
+
 		Curses.init_screen()
 		height = Curses.lines
 		width = Curses.cols
@@ -37,7 +45,7 @@ class Game
 			Curses.addstr("|")
 		end
 		
-		title = " STUPID GAME BRO "					####### SETTING GAME'S TITLE #########
+		title = " SUPER BUGGY GAME, BRO! "					####### SETTING GAME'S TITLE #########
 		Curses.setpos(0,(width/2)-title.length/2)
 		Curses.addstr(title)
 
@@ -62,16 +70,16 @@ class Game
 		if $x < 1
 		$x = 1
 		
-		elsif $y > 22
-		$y = 22
+		elsif $y > $height - 1
+		$y = $height - 1
 	
-		elsif $x > 77
-		$x = 77
+		elsif $x > $width - 1
+		$x = $width - 2
 
 		elsif $y < 1
 		$y = 1
 			# # 
-		elsif $food_x == $x && $food_y == $y
+		elsif $food_x == $x && $food_y == $y || $food_x == $x+1 && $food_y == $y
 		Curses.setpos($food_y,$food_x)
 		@food_icon = ""
 		Curses.addstr(@food_icon)
@@ -92,15 +100,63 @@ class Game
 		Curses.addstr(@food_icon)
 	end
 
+	def ref
+		if $time > 0
+	  Curses.refresh
+	  $time = $time - 1
+	  sleep(1)
+	  Curses.setpos(Curses.lines-1,20)
+	  Curses.addstr(" Time: #{$time.to_s} ")
+	  else
+	  	$time = 0
+	  	game_over
+	  end
+	end
+
+	def game_over
+		
+	
+	  Curses.clear
+	  Curses.close_screen()
+		puts "Game over!"
+		puts "Hey! You've collected #{$score} X-s!"
+		print "Gimme Your name, bro: "
+		$name = gets.chomp
+		puts
+
+	
+	Curses.close_screen()
+	Curses.clear
+	sleep(1)
+	puts "Thank You, #{$name}\r"
+	puts
+	print "(.Y.) (.Y.) (.Y.) (.Y.)"
+	exit(0)
+	end
+
 end
 
 ##################### RUN GAME SECTION ##########################################
+
+
+
 @run = Game.new
+
+thr = Thread.new{
+while true do
+	@run.ref
+end
+	}
+
 @run.square_set_pos
 @run.set_user_interface
 @run.put_food
 
+
+
 	loop do
+
+
 	  case Curses.getch
 		when ?d
 	   		$x = $x + 2
@@ -116,4 +172,12 @@ end
 		  	@run.hit?			  	
 	  end
 	  @run.put_food
+
+
+	
+
 	end
+
+	
+
+	
